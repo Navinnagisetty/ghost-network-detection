@@ -1,0 +1,7 @@
+ghost-network-dbt/ghost_network/target/
+ghost-network-dbt/ghost_network/logs/
+ghost-network-dbt/logs/
+__pycache__/
+*.pyc
+.env
+.DS_Store
