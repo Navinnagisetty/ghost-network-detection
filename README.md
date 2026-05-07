@@ -214,16 +214,6 @@ Airflow requires a running server — even when no jobs are executing. Step Func
 
 ---
 
-## Resume Bullets
-
-**Data Engineering role:**
-Built ghost network detection system on AWS processing full CMS Medicare Provider Directory (2.86M providers) against NPPES ground truth (8M records) using AWS Glue ETL, Athena serverless SQL, and NetworkX graph analysis; detected 6,900 deactivated NPIs still listed as active and 6,803 providers sharing one phone number — patterns invisible to record-level checking; used Amazon Bedrock Claude Haiku to generate plain-English compliance alerts; validated with dbt (11/11 tests passing) and orchestrated via Step Functions weekly pipeline.
-
-**Data Analyst role:**
-Analyzed full US Medicare provider directory (2.86M providers) across 56 states; found mental health counselors have a 57.6% HIGH risk ghost rate — 38x higher than overall average; identified geographic fraud concentration (84.6% ghost rate in ZIP 68065 Nebraska); computed member impact showing patients may contact 5+ listed providers before reaching one who is available and accepting patients; published findings in live Tableau dashboard.
-
----
-
 ## Contact
 
 **Navin Kumar Nagisetty** — Stamford, CT
