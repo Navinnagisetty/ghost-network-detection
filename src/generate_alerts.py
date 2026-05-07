@@ -1,15 +1,14 @@
-"""
-Ghost Network Detection — Bedrock AI Alert Generator
-Takes top ghost providers and generates plain-English
-compliance alerts using Claude Haiku via Amazon Bedrock
-"""
+import subprocess
+import sys
+subprocess.check_call([sys.executable, "-m", "pip", "install", "--upgrade", "boto3", "-q"])
+
 import boto3
 import json
 
 S3_BUCKET = "ghost-network-detection-raw"
 SCORES_KEY = "processed/gold/ghost_scores/ghost_scores_all.json"
 ALERTS_KEY = "processed/gold/ai_alerts/ghost_alerts.json"
-MODEL_ID = "anthropic.claude-haiku-20240307-v1:0"
+MODEL_ID = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
 
 def generate_alert(provider, bedrock):
     prompt = f"""You are a healthcare compliance analyst reviewing insurance provider directories.
@@ -42,11 +41,12 @@ Be direct and specific. No bullet points."""
         contentType="application/json",
         accept="application/json"
     )
-
     result = json.loads(response["body"].read())
     return result["content"][0]["text"]
 
 def main():
+    print(f"boto3 version: {boto3.__version__}")
+    print(f"Using model: {MODEL_ID}")
     s3 = boto3.client("s3", region_name="us-east-1")
     bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 
@@ -55,41 +55,32 @@ def main():
         s3.get_object(Bucket=S3_BUCKET, Key=SCORES_KEY)["Body"].read()
     )
 
-    # Get top 10 highest risk providers
     high_risk = [r for r in data if r["risk_tier"] == "HIGH"]
-    high_risk_sorted = sorted(
-        high_risk, key=lambda x: x["ghost_score"], reverse=True
-    )[:10]
+    top10 = sorted(high_risk, key=lambda x: x["ghost_score"], reverse=True)[:10]
 
-    print(f"Generating AI alerts for top {len(high_risk_sorted)} high-risk providers...")
-
+    print(f"Generating alerts for top {len(top10)} providers...")
     alerts = []
-    for i, provider in enumerate(high_risk_sorted):
-        print(f"  Alert {i+1}/{len(high_risk_sorted)}: {provider['provider_name']}...")
+
+    for i, provider in enumerate(top10):
+        print(f"  Alert {i+1}/{len(top10)}: {provider['provider_name']}...")
         try:
             alert_text = generate_alert(provider, bedrock)
-            alerts.append({
-                **provider,
-                "ai_alert": alert_text,
-                "alert_generated": True
-            })
-            print(f"    Done — score {provider['ghost_score']}/100")
+            alerts.append({**provider, "ai_alert": alert_text, "alert_generated": True})
+            print(f"    Done")
         except Exception as e:
             print(f"    Error: {e}")
             alerts.append({**provider, "ai_alert": str(e), "alert_generated": False})
 
-    # Save alerts
     s3.put_object(
         Bucket=S3_BUCKET,
         Key=ALERTS_KEY,
         Body=json.dumps(alerts, indent=2).encode("utf-8")
     )
 
-    print(f"\nAlerts saved to s3://{S3_BUCKET}/{ALERTS_KEY}")
-    print(f"\nSample alert:")
-    if alerts:
+    print(f"\nDone. Alerts saved.")
+    if alerts and alerts[0].get("alert_generated"):
+        print(f"\nSample alert:")
         print(f"Provider: {alerts[0]['provider_name']}")
-        print(f"Score: {alerts[0]['ghost_score']}/100")
-        print(f"Alert: {alerts[0].get('ai_alert', 'N/A')}")
+        print(f"Alert: {alerts[0]['ai_alert']}")
 
 main()
