@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: gold_ghost_by_state
+    description: "Ghost provider rates aggregated by US state"
+    columns:
+      - name: state
+        tests:
+          - not_null
+          - unique
+      - name: total_providers
+        tests:
+          - not_null
+      - name: high_risk_pct
+        tests:
+          - not_null
+
+  - name: gold_ghost_by_specialty
+    description: "Ghost provider rates aggregated by medical specialty"
+    columns:
+      - name: specialty
+        tests:
+          - not_null
+          - unique
+      - name: high_risk_pct
+        tests:
+          - not_null
+
+  - name: gold_high_risk_providers
+    description: "All HIGH risk ghost providers with full detail"
+    columns:
+      - name: npi
+        tests:
+          - not_null
+      - name: ghost_score
+        tests:
+          - not_null
+      - name: risk_tier
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['HIGH']
